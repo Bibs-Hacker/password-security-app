@@ -1,1 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Password Strength Checker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto+Mono:wght@400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        :root {
+            --neon-pink: #01ffa;
+            --neon-blue: #0cf;
+            --dark-background: #0ca;
+            --card-background: rgba(10, 12, 25, 1.95);
+            --text-color: #fff;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --input-bg: rgba(255, 255, 255, 0.1);
+            --input-border: rgba(255, 255, 255, 0.3);
+            --text-faded: #aaa;
+            --error-color: #ff3333;
+            --warning-color: #ffcc00;
+            --success-color: #66cc00;
+            --info-color: #00ccff;
+        }
 
+        /* Base styles */
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--dark-background);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Neon Wavy Background Animation */
+        .wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ff00cc" fill-opacity="3.2" d="M0,96L48,112C96,128,192,160,288,144C384,128,480,64,576,53.3C672,43,768,85,864,128C960,171,1056,213,1152,224C1248,235,1344,213,1392,202.7L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') center / cover no-repeat;
+            background-size: 200% 100%;
+            animation: wave-movement 15s infinite linear alternate;
+            z-index: -1;
+        }
+        .wave::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%2300ccff" fill-opacity="2.2" d="M0,192L48,181.3C96,171,192,149,288,165.3C384,181,480,235,576,240C672,245,768,203,864,197.3C960,192,1056,224,1152,245.3C1248,267,1344,277,1392,282.7L1440,288L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') center / cover no-repeat;
+            background-size: 200% 100%;
+            animation: wave-movement 20s infinite linear alternate-reverse;
+            z-index: -2;
+        }
+        @keyframes wave-movement {
+            0% { background-position-x: 0%; }
+            100% { background-position-x: 100%; }
+        }
+
+        /* Main container and layout */
+        .container {
+            position: relative;
+            z-index: 1;
+            background: var(--card-background);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            width: 90%;
+            max-width: 550px;
+            text-align: center;
+            box-shadow: 0 0 3 rgba(10, 0, 0, 10.5);
+            border: 2px solid var(--border-color);
+        }
+
+        /* Headings */
+        h1 {
+            font-weight: 600;
+            font-size: 2.5rem;
+            color: var(--text-color);
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            margin-bottom: 20px;
+        }
+
+        .profile {
+          position: relative;
+          height: 200px;
+          width: 200px;
+          border: 6px solid #ff00ff;
+          border-shadow: 0 0 20px #0ca;
+          border-radius: 70px;
+          clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+          padding: 5px;;
+          display: block;
+        }
+
+        /* Input group with icon */
+        .input-group {
+            position: relative;
+            margin: 30px 0;
+            text-align: left;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 20px 20px 20px 5px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 10px;
+            color: var(--text-color);
+            font-size: 1.3rem;
+            transition: border-color 0.3s;
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--neon-pink);
+        }
+        .input-group .material-icons {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--text-faded);
+            transition: color 0.3s;
+        }
+        .input-group .material-icons:hover {
+            color: var(--text-color);
+        }
+
+        /* Strength display */
+        .strength-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .password-strength-bar {
+            flex-grow: 1;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            margin-right: 15px;
+            overflow: hidden;
+        }
+        .strength-indicator {
+            height: 100%;
+            width: 0;
+            transition: width 0.5s ease-in-out, background-color 0.5s;
+            border-radius: 5px;
+        }
+        .strength-text {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            width: 80px; /* Fixed width to prevent layout shift */
+            text-align: right;
+        }
+        .strength-text.error { color: var(--error-color); }
+        .strength-text.warning { color: var(--warning-color); }
+        .strength-text.success { color: var(--success-color); }
+
+        .weak { background-color: var(--error-color); }
+        .moderate { background-color: var(--warning-color); }
+        .strong { background-color: var(--success-color); }
+
+        /* Criteria checklist */
+        .criteria-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            text-align: left;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        .criteria-list li {
+            font-size: 1.2rem;
+            color: var(--text-faded);
+            transition: color 0.3s;
+            position: relative;
+            padding-left: 25px;
+        }
+        .criteria-list li::before {
+            content: 'close';
+            font-family: 'Material Icons';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            color: var(--error-color);
+        }
+        .criteria-list li.valid {
+            color: var(--success-color);
+        }
+        .criteria-list li.valid::before {
+            content: 'done';
+            color: var(--success-color);
+        }
+
+        /* Suggestion box */
+        .suggestion-box {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            text-align: left;
+            border: 1px solid var(--border-color);
+            display: none;
+        }
+        .suggestion-box h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.1rem;
+            color: var(--warning-color);
+        }
+        .suggestion-box p {
+            font-size: 0.9rem;
+            color: var(--text-faded);
+        }
+        .suggested-password {
+            background: rgba(43, 43, 64, 0.5);
+            padding: 12px;
+            border-radius: 5px;
+            font-family: 'Roboto Mono', monospace;
+            word-wrap: break-word;
+            margin-top: 10px;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .suggested-password .copy-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-faded);
+            transition: color 0.3s;
+            padding: 0;
+            margin-left: 10px;
+        }
+        .suggested-password .copy-btn:hover {
+            color: var(--text-color);
+        }
+
+        /* Settings Toggle Button */
+        .settings-toggle {
+            position: absolute;
+            top: 50px;
+            right: 50px;
+            cursor: pointer;
+            color: var(--text-faded);
+            background: rgba(255, 255, 255, 1.1);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding:10px;
+            transition: background 3.3s, transform 5.5s;
+        }
+        .settings-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .settings-toggle.active {
+            transform: rotate(90deg);
+            color: var(--neon-blue);
+        }
+
+        /* Settings Panel */
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            background: var(--card-background);
+            backdrop-filter: blur(10px);
+            height: 300px;
+            width: 350px;
+            text-align: left;
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+            transform: translateX(100%);
+            transition: transform 0.5s ease-in-out;
+            padding: 40px;
+            overflow-y: auto;
+            z-index: 100;
+            border-left: 1px solid var(--border-color);
+        }
+        .settings-panel.open {
+            transform: translateX(0);
+        }
+        .settings-panel .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 30px;
+            cursor: pointer;
+            color: var(--text-faded);
+        }
+        .settings-panel h3 {
+            margin-top: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 10px;
+            color: var(--neon-blue);
+        }
+        .settings-panel label {
+            display: block;
+            margin-top: 20px;
+            font-size: 1.2rem;
+        }
+        .settings-panel input[type="range"] {
+            width: 100%;
+            margin-top: 10px;
+        }
+        .settings-panel .range-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: var(--text-faded);
+        }
+        .settings-panel .checkbox-group {
+            margin-top: 15px;
+        }
+        .settings-panel input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        .passphrase-toggle {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .passphrase-toggle.active {
+            background: var(--neon-blue);
+        }
+
+        .footer {
+            margin-top: 40px;
+            color: #888;
+            font-size: 1.8rem;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wave"></div>
+    <div class="container">
+        <span class="material-icons settings-toggle" id="settings-toggle">settings</span>
+          <img class="profile" src="https://files.catbox.moe/yem9j7.jpg" alt="Profile photo of Brian Omondi" />
+        <h1>Advanced Password Security<br>By Tech Brian👾</h1>
+
+        <div class="input-group">
+            <input type="password" id="password-input" placeholder="Enter your password">
+            <span class="material-icons" id="toggle-password">visibility_off</span>
+        </div>
+
+        <div class="strength-info">
+            <div class="password-strength-bar">
+                <div id="strength-indicator" class="strength-indicator"></div>
+            </div>
+            <div id="strength-text" class="strength-text"></div>
+        </div>
+
+        <ul class="criteria-list" id="criteria-list">
+            <li id="length-criteria">Minimum 12 characters</li>
+            <li id="uppercase-criteria">Includes uppercase letters</li>
+            <li id="numbers-criteria">Includes numbers</li>
+            <li id="symbols-criteria">Includes symbols</li>
+            <li id="random-criteria">Avoids common patterns</li>
+        </ul>
+
+        <div class="suggestion-box" id="suggestion-box">
+            <h3>Try a stronger password</h3>
+            <p>Your current password is weak. Here is a strong, unique suggestion:</p>
+            <div class="suggested-password">
+                <span id="suggested-password-text"></span>
+                <button class="copy-btn" onclick="copySuggestedPassword()">
+                    <span class="material-icons">content_copy</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Built with ❤️ for better security.<br>By Tech Brian | ©2025</p>
+        </div>
+    </div>
+
+    <div id="settings-panel" class="settings-panel">
+        <span class="material-icons close-btn" id="settings-close">close</span>
+        <h3>Generation Settings</h3>
+        <div>
+            <label for="length-slider" class="range-label">Password Length: <span id="length-value">12</span></label>
+            <input type="range" id="length-slider" min="8" max="32" value="12">
+        </div>
+        <div class="checkbox-group">
+            <label><input type="checkbox" id="include-uppercase" checked> Include Uppercase</label>
+            <label><input type="checkbox" id="include-numbers" checked> Include Numbers</label>
+            <label><input type="checkbox" id="include-symbols" checked> Include Symbols</label>
+        </div>
+        <div class="passphrase-toggle" id="passphrase-mode">Generate as Passphrase</div>
+    </div>
+
+    <script>
+        const passwordInput = document.getElementById('password-input');
+        const strengthIndicator = document.getElementById('strength-indicator');
+        const strengthText = document.getElementById('strength-text');
+        const criteriaList = document.getElementById('criteria-list');
+        const suggestionBox = document.getElementById('suggestion-box');
+        const suggestedPasswordText = document.getElementById('suggested-password-text');
+        const togglePasswordBtn = document.getElementById('toggle-password');
+        const settingsToggleBtn = document.getElementById('settings-toggle');
+        const settingsCloseBtn = document.getElementById('settings-close');
+        const settingsPanel = document.getElementById('settings-panel');
+        const lengthSlider = document.getElementById('length-slider');
+        const lengthValue = document.getElementById('length-value');
+        const includeUppercase = document.getElementById('include-uppercase');
+        const includeNumbers = document.getElementById('include-numbers');
+        const includeSymbols = document.getElementById('include-symbols');
+        const passphraseModeToggle = document.getElementById('passphrase-mode');
+
+        const criteria = {
+            length: document.getElementById('length-criteria'),
+            uppercase: document.getElementById('uppercase-criteria'),
+            numbers: document.getElementById('numbers-criteria'),
+            symbols: document.getElementById('symbols-criteria'),
+            random: document.getElementById('random-criteria')
+        };
+
+        const characters = {
+            lowercase: 'abcdefghijklmnopqrstuvwxyz',
+            uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            numbers: '0123456789',
+            symbols: '!@#$%^&*()_+~`|}{[]:;?><,./-='
+        };
+
+        const wordlist = [
+            "apple", "house", "river", "cloud", "magic", "table", "phone", "light", "dream", "water",
+            "garden", "forest", "shadow", "ocean", "mountain", "freedom", "journey", "galaxy", "adventure",
+            "whisper", "emerald", "crystal", "phoenix", "mystic", "silence", "harmony", "paradise", "serenity",
+            "velvet", "thunder"
+        ];
+        
+        let generationOptions = {
+            length: parseInt(lengthSlider.value),
+            uppercase: includeUppercase.checked,
+            numbers: includeNumbers.checked,
+            symbols: includeSymbols.checked,
+            passphrase: false
+        };
+
+        // --- Core Logic ---
+
+        function checkPasswordStrength(password) {
+            let score = 0;
+            const hasLowercase = /[a-z]/.test(password);
+            const hasUppercase = /[A-Z]/.test(password);
+            const hasNumber = /[0-9]/.test(password);
+            const hasSymbol = /[!@#$%^&*()_+~`|}{[\]:;?><,./-=]/.test(password);
+            const hasPattern = /(.)\1{2}|(abc|123|qwerty|asdfg)/i.test(password);
+            const hasDictionaryWord = new RegExp(wordlist.join('|'), 'i').test(password);
+            const isTooSimple = password.toLowerCase().includes('password') || password.toLowerCase().includes('12345');
+            const hasEnoughEntropy = password.length > 10 && hasLowercase && hasUppercase && hasNumber;
+
+            // Scoring logic
+            if (password.length > 0) {
+                if (password.length >= generationOptions.length) score += 2;
+                if (hasLowercase) score++;
+                if (hasUppercase) score++;
+                if (hasNumber) score++;
+                if (hasSymbol) score++;
+                if (hasEnoughEntropy) score++;
+            }
+            if (hasPattern || hasDictionaryWord || isTooSimple) {
+                score = Math.max(0, score - 2);
+            }
+
+            return {
+                score,
+                hasLowercase,
+                hasUppercase,
+                hasNumber,
+                hasSymbol,
+                hasPattern: !hasPattern && !isTooSimple && !hasDictionaryWord,
+                length: password.length
+            };
+        }
+
+        function updateStrengthDisplay(criteriaResult) {
+            let width = 0;
+            let text = '';
+            let className = '';
+
+            if (criteriaResult.score <= 2 && criteriaResult.length > 0) {
+                width = 30;
+                text = 'Weak';
+                className = 'error';
+            } else if (criteriaResult.score <= 4) {
+                width = 60;
+                text = 'Moderate';
+                className = 'warning';
+            } else if (criteriaResult.score >= 5) {
+                width = 100;
+                text = 'Strong';
+                className = 'success';
+            } else {
+                width = 0;
+                text = '';
+                className = '';
+            }
+
+            strengthIndicator.style.width = `${width}%`;
+            strengthText.textContent = text;
+            strengthText.className = `strength-text ${className}`;
+
+            updateCriteriaChecklist(criteriaResult);
+        }
+
+        function updateCriteriaChecklist(criteriaResult) {
+            criteria.length.classList.toggle('valid', criteriaResult.length >= generationOptions.length);
+            criteria.uppercase.classList.toggle('valid', criteriaResult.hasUppercase);
+            criteria.numbers.classList.toggle('valid', criteriaResult.hasNumber);
+            criteria.symbols.classList.toggle('valid', criteriaResult.hasSymbol);
+            criteria.random.classList.toggle('valid', criteriaResult.hasPattern);
+        }
+
+        function generateStrongerPassword(basePassword) {
+            if (generationOptions.passphrase) {
+                return generatePassphrase();
+            }
+
+            let suggested = basePassword;
+            const criteriaResult = checkPasswordStrength(basePassword);
+            
+            if (generationOptions.uppercase && !criteriaResult.hasUppercase) {
+                suggested += characters.uppercase[Math.floor(Math.random() * characters.uppercase.length)];
+            }
+            if (generationOptions.numbers && !criteriaResult.hasNumber) {
+                suggested += characters.numbers[Math.floor(Math.random() * characters.numbers.length)];
+            }
+            if (generationOptions.symbols && !criteriaResult.hasSymbol) {
+                suggested += characters.symbols[Math.floor(Math.random() * characters.symbols.length)];
+            }
+            
+            while (suggested.length < generationOptions.length) {
+                const charSet = getRandomCharacterSet();
+                suggested += charSet[Math.floor(Math.random() * charSet.length)];
+            }
+            
+            return shuffleString(suggested);
+        }
+
+        function generatePassphrase() {
+            const numWords = Math.floor(Math.random() * 2) + 3; // 3-4 words
+            let passphrase = [];
+            for(let i = 0; i < numWords; i++) {
+                passphrase.push(wordlist[Math.floor(Math.random() * wordlist.length)]);
+            }
+            let pass = passphrase.join('-');
+            
+            if(generationOptions.numbers) pass += Math.floor(Math.random() * 100);
+            if(generationOptions.symbols) pass += characters.symbols[Math.floor(Math.random() * characters.symbols.length)];
+            return pass;
+        }
+
+        function getRandomCharacterSet() {
+            const charSets = [characters.lowercase];
+            if (generationOptions.uppercase) charSets.push(characters.uppercase);
+            if (generationOptions.numbers) charSets.push(characters.numbers);
+            if (generationOptions.symbols) charSets.push(characters.symbols);
+            return charSets[Math.floor(Math.random() * charSets.length)];
+        }
+
+        function shuffleString(str) {
+            const arr = str.split('');
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr.join('');
+        }
+
+        // --- UI Interactions ---
+
+        passwordInput.addEventListener('input', () => {
+            const password = passwordInput.value;
+            const criteriaResult = checkPasswordStrength(password);
+            updateStrengthDisplay(criteriaResult);
+
+            if (criteriaResult.score < 5 && password.length > 0) {
+                const suggested = generateStrongerPassword(password);
+                suggestedPasswordText.textContent = suggested;
+                suggestionBox.style.display = 'block';
+            } else {
+                suggestionBox.style.display = 'none';
+            }
+        });
+
+        togglePasswordBtn.addEventListener('click', () => {
+            const type = passwordInput.type === 'password' ? 'text' : 'password';
+            passwordInput.type = type;
+            togglePasswordBtn.textContent = type === 'password' ? 'visibility_off' : 'visibility';
+        });
+
+        settingsToggleBtn.addEventListener('click', () => {
+            settingsPanel.classList.add('open');
+            settingsToggleBtn.classList.add('active');
+        });
+        settingsCloseBtn.addEventListener('click', () => {
+            settingsPanel.classList.remove('open');
+            settingsToggleBtn.classList.remove('active');
+        });
+
+        lengthSlider.addEventListener('input', () => {
+            lengthValue.textContent = lengthSlider.value;
+            updateSettings();
+        });
+        includeUppercase.addEventListener('change', updateSettings);
+        includeNumbers.addEventListener('change', updateSettings);
+        includeSymbols.addEventListener('change', updateSettings);
+
+        passphraseModeToggle.addEventListener('click', () => {
+            generationOptions.passphrase = !generationOptions.passphrase;
+            passphraseModeToggle.classList.toggle('active', generationOptions.passphrase);
+        });
+
+        function updateSettings() {
+            generationOptions.length = parseInt(lengthSlider.value);
+            generationOptions.uppercase = includeUppercase.checked;
+            generationOptions.numbers = includeNumbers.checked;
+            generationOptions.symbols = includeSymbols.checked;
+            
+            // Re-evaluate current password with new settings
+            const criteriaResult = checkPasswordStrength(passwordInput.value);
+            updateStrengthDisplay(criteriaResult);
+        }
+
+        function copySuggestedPassword() {
+            const textToCopy = suggestedPasswordText.textContent;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                alert('Suggested password copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+        }
+    </script>
+</body>
+  </html>
